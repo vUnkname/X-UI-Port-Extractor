@@ -5,7 +5,7 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'extractPorts') {
         try {
-            const ports = extractPortsFromCurrentPage();
+            const ports = extractPortsFromCurrentPage(request.selectedProtocols);
             sendResponse({ success: true, ports: ports });
         } catch (error) {
             console.error('Error extracting ports:', error);
@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Function to extract ports from the current page
-function extractPortsFromCurrentPage() {
+function extractPortsFromCurrentPage(selectedProtocols = []) {
     const ports = [];
     
     try {
@@ -41,16 +41,36 @@ function extractPortsFromCurrentPage() {
             const cells = row.querySelectorAll('td');
             
             // The port is in the 5th column (index 4)
+            // The protocol is in the 6th column (index 5)
             // Based on the HTML structure: ID, Menu, Enabled, Remark, Port, Protocol, Clients, Traffic, Duration
-            if (cells.length >= 5) {
+            if (cells.length >= 6) {
                 const portCell = cells[4]; // 5th column (0-indexed)
+                const protocolCell = cells[5]; // 6th column (0-indexed)
+                
                 const portText = portCell.textContent.trim();
+                const protocolText = protocolCell.textContent.toLowerCase().trim();
                 
                 // Validate port number
                 if (portText && /^\d+$/.test(portText)) {
                     const portNumber = parseInt(portText, 10);
                     if (portNumber >= 1 && portNumber <= 65535) {
-                        ports.push(portText);
+                        // Check if this port should be filtered out based on protocol
+                        let shouldSkip = false;
+                        
+                        if (selectedProtocols.length > 0) {
+                            // Check if the protocol matches any of the selected filters
+                            for (const protocol of selectedProtocols) {
+                                if (protocolText.includes(protocol.toLowerCase())) {
+                                    shouldSkip = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Only add port if it's not filtered out
+                        if (!shouldSkip) {
+                            ports.push(portText);
+                        }
                     }
                 }
             }

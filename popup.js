@@ -76,13 +76,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (actionBtns.length >= 1) actionBtns[0].classList.add('loading');
             showStatus('Extracting ports...', 'info');
 
+            // Get selected protocol filters
+            const selectedProtocols = [];
+            const protocolCheckboxes = document.querySelectorAll('.protocol-checkbox input[type="checkbox"]:checked');
+            protocolCheckboxes.forEach(checkbox => {
+                selectedProtocols.push(checkbox.value);
+            });
+
             // Get active tab
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
             // Execute content script to extract ports
             const results = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                function: extractPortsFromPage
+                function: extractPortsFromPage,
+                args: [selectedProtocols]
             });
 
             const ports = results[0].result;
@@ -95,7 +103,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     actionBtns[1].style.opacity = '1';
                     actionBtns[1].style.pointerEvents = 'auto';
                 }
-                showStatus(`${ports.length} ports extracted successfully`, 'success');
+                
+                let statusMsg = `${ports.length} ports extracted successfully`;
+                if (selectedProtocols.length > 0) {
+                    statusMsg += ` (filtered out: ${selectedProtocols.join(', ')})`;
+                }
+                showStatus(statusMsg, 'success');
                 
                 // Save to storage after successful extraction
                 chrome.storage.local.set({ extractedPorts: ports });
@@ -217,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Function to be executed in the content script context
-function extractPortsFromPage() {
+function extractPortsFromPage(selectedProtocols = []) {
     try {
         const ports = [];
         
@@ -237,16 +250,36 @@ function extractPortsFromPage() {
             const cells = row.querySelectorAll('td');
             
             // The port is in the 5th column (index 4)
+            // The protocol is in the 6th column (index 5)
             // Based on the HTML structure: ID, Menu, Enabled, Remark, Port, Protocol, Clients, Traffic, Duration
-            if (cells.length >= 5) {
+            if (cells.length >= 6) {
                 const portCell = cells[4]; // 5th column (0-indexed)
+                const protocolCell = cells[5]; // 6th column (0-indexed)
+                
                 const portText = portCell.textContent.trim();
+                const protocolText = protocolCell.textContent.toLowerCase().trim();
                 
                 // Check if it's a valid port number (numeric and reasonable range)
                 if (portText && /^\d+$/.test(portText)) {
                     const portNumber = parseInt(portText, 10);
                     if (portNumber >= 1 && portNumber <= 65535) {
-                        ports.push(portText);
+                        // Check if this port should be filtered out based on protocol
+                        let shouldSkip = false;
+                        
+                        if (selectedProtocols.length > 0) {
+                            // Check if the protocol matches any of the selected filters
+                            for (const protocol of selectedProtocols) {
+                                if (protocolText.includes(protocol.toLowerCase())) {
+                                    shouldSkip = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Only add port if it's not filtered out
+                        if (!shouldSkip) {
+                            ports.push(portText);
+                        }
                     }
                 }
             }

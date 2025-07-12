@@ -331,7 +331,7 @@ h3 {
 }
 
 #customText:disabled {
-    background-color: #e9ecef;
+    background-color: #f8f9fa;
     color: #6c757d;
     cursor: not-allowed;
 }
@@ -463,4 +463,77 @@ h3 {
 
 .github-link svg:hover {
     fill: #044289;
+}
+
+/* Protocol Filter Section */
+.protocol-section {
+    margin: 0 20px 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ced4da;
+}
+
+.protocol-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.protocol-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.protocol-filters {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    row-gap: 8px;
+}
+
+.protocol-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #495057;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+}
+
+.protocol-checkbox:hover {
+    color: #333333;
+}
+
+.protocol-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.protocol-checkbox .checkbox {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ced4da;
+    border-radius: 3px;
+    margin-right: 8px;
+    position: relative;
+    transition: all 0.15s ease;
+}
+
+.protocol-checkbox input[type="checkbox"]:checked+.checkbox {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.protocol-checkbox input[type="checkbox"]:checked+.checkbox::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
 }
