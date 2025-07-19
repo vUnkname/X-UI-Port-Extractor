@@ -3,14 +3,10 @@
   "name": "X-UI Port Extractor",
   "version": "1.0",
   "description": "Extract port numbers from X-UI web tables and copy to clipboard",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "storage"
-  ],
+  "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "popup.html",
-	"default_icon": {
+    "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
@@ -27,5 +23,12 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
-} 
+  },
+  "host_permissions": ["*://raw.githubusercontent.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
